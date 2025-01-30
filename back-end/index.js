@@ -1,16 +1,19 @@
 const port = 4000;
-import { type } from 'os';
-import Product from './../front-end/src/pages/Product';
 const express = require("express");
-const app = express();
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const cors = require("cors");
-const path =require("path");
+const path = require("path");
+const mysql = require('mysql');
+const bodyParser = require('body-parser');
+
+const app = express();
 
 app.use(express.json());
 app.use(cors());
+app.use(bodyParser.json());
+
 
 // Database connection with MongoDB
 mongoose.connect("mongodb+srv://StyleHavenAdmin:User123Style@freecluster.ymn6e.mongodb.net/stylehaven-jason?retryWrites=true&w=majority&appName=FreeCluster");
@@ -28,19 +31,93 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({storage:storage});
+// Database 
+// const db = mysql.createConnection({
+//     host: 'localhost',
+//     user: 'root',
+//     password: '',
+//     database: 'votingapp'
+// });
+
+// db.connect((err) => {
+//     if (err) {
+//         throw err;
+//     }
+//     console.log('Voting App Connected.....')
+
+// });
 
 //Create Upload Endpoint
+const upload = multer({ storage: storage });
+
 app.use('/images', express.static('upload/images'))
 app.post("/upload", upload.single('product'), (req, res) => {
     res.json({
-        success:1,
-        image_url:`http://localhost:${port}/images/${req.file.filename}`,
+        success: 1,
+        image_url: `http://localhost:${port}/images/${req.file.filename}`,
     })
 });
 
+
+// Register Endpoint
+app.post('/register', (req, res) => {
+
+    const { firstName, lastName, department, email, matricNumber, phoneNumber, password } = req.body;
+
+
+    db.query('SELECT * FROM users WHERE Email = ?', [email], async (err, result) => {
+        if (err) {
+            console.error(" There is an error");
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+
+        if (result.length === 0) {
+
+            // Now, you can insert data into the Curriculum table
+            const insertDataQuery = `INSERT INTO users (FirstName, LastName, Department, Email, PhoneNumber, MatricNumber, Password ) VALUES (?, ?, ?, ?, ?, ?, ?);`;
+
+            const values = [firstName, lastName, department, email, phoneNumber, matricNumber, password];
+
+            db.query(insertDataQuery, values, (err) => {
+                if (err) {
+                    console.error(err);
+                    throw new error('Error inserting data');
+                }
+                return res.json({ message: `Account Registered successfully` });
+
+            });
+
+        } else {
+            res.redirect("/login")
+            return res.json({ message: `Acount already exists` });
+        }
+
+    })
+
+
+})
+
+// Login Endpoint
+app.post('/login', (req, res) => {
+    const { email, password } = req.body;
+
+
+    db.query('SELECT * FROM users WHERE Email = ? and Password = ?', [email, password], async (err, result) => {
+        if (err) {
+            console.error(" There is an erro err");
+            return res.status(400).json({ error: 'Internal Server Error' });
+        }
+        if (result.length === 0) {
+            console.log('Wrong Email or Password')
+            return res.status(500).json({ message: 'Wrong Email or Password' });
+        } else {
+            return res.json({ message: `Logged in Successfuly` });
+        }
+    })
+})
+
 // Schema for Creating Products
-const Product =  mongoose.model("Product", {
+const Product = mongoose.model("Product", {
     id: {
         type: Number,
         required: true,
@@ -91,7 +168,7 @@ app.post('/addproduct', async (req, res) => {
 
 // Proof of Runtime
 app.listen(port, (error) => {
-    if(!error) {
+    if (!error) {
         console.log('Server is running at port ' + port);
     }
     else {
