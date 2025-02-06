@@ -1,18 +1,18 @@
 import { useState } from 'react';
+import axios from 'axios';
 import login from '../assets/Login.png'
 import { BsFillEyeFill } from 'react-icons/bs';
 import { AiFillEyeInvisible } from 'react-icons/ai';
-import { redirect } from 'react-router-dom';
+import {  useNavigate } from 'react-router-dom';
 
-
-const Login = ({ onBack }) => {
+const Login = ({ onBack, setIsLogin }) => {
     const [see, setSee] = useState(true);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState('');
-
+    const navigate = useNavigate();
 
     const handleSubmit = () => {
         if (email && password) {
@@ -21,17 +21,19 @@ const Login = ({ onBack }) => {
                 password: password,
                 email: email,
             })
-                .then(response => {
-                    console.log(response.data.message);
-                    setSuccess(response.data.message);
-                    redirect('/dashboard')
+                .then(res => {
+                    console.log(res.data.message);
+                    setSuccess(res.data.message);
+                    setIsLogin(true);
+                    navigate('/');
+
                 })
                 .catch(error => {
-                    console.log(error.response.data.error);
-                    setError(error.response.data.error);
+                    console.log(error.response);
+                    setError(error.response);
                 })
                 .finally(() => {
-                    setLoading(false)
+                    setLoading(false);
                 })
         }
         else {
@@ -57,6 +59,9 @@ const Login = ({ onBack }) => {
                 <img src={login} alt="" />
             </div>
             <form className='w-full px-8 h-full font-bold text-[#000000]  justify-center items-center flex flex-col gap-2  max-sm:h-[100%]'>
+                {loading && <h4>Loading...</h4>}
+                {error && <p style={{ color: 'red' }}>{error}</p>}
+                {success && <p style={{ color: 'green' }}>{success}</p>}
                 <div className='w-full flex flex-col px-12 py-16 max-sm:pb-10 max-sm:pt-5 gap-4 rounded-xl shadow-lg shadow-black' >
                     <h3 className='h3 text-[40px]'>Login</h3>
                     <div className="w-full items-center lg:text-[25px]">
@@ -82,9 +87,6 @@ const Login = ({ onBack }) => {
                         </button>
                         <span className='font-bold lg:text-[20px]'>Forgot Password?</span>
                     </div>
-                    {loading && <h4>Loading...</h4>}
-                    {error && <p style={{ color: 'red' }}>{error}</p>}
-                    {success && <p style={{ color: 'green' }}>{success}</p>}
                 </div>
                 <span className='font-bold lg:text-[30px] cursor-pointer text-white pt-4' onClick={onBack}>Back to Sign Up</span>
             </form>

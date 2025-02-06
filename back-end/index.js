@@ -2,11 +2,14 @@ const port = 4000;
 const express = require("express");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
+const bcrypt = require('bcrypt')
 const multer = require("multer");
 const cors = require("cors");
 const path = require("path");
 const mysql = require('mysql');
 const bodyParser = require('body-parser');
+const { Console } = require("console");
+require("dotenv").config();
 
 const app = express();
 
@@ -15,13 +18,84 @@ app.use(cors());
 app.use(bodyParser.json());
 
 
+// Database 
+const db = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: '',
+    database: 'style_haven',
+    port: 3306,
+});
+
+db.connect((err) => {
+    if (err) {
+        console.error('Database connection error: ', err.message);
+        return;
+    }
+    console.log('✅ Connected to the database!');
+});
+
 // Database connection with MongoDB
-mongoose.connect("mongodb+srv://StyleHavenAdmin:User123Style@freecluster.ymn6e.mongodb.net/stylehaven-jason?retryWrites=true&w=majority&appName=FreeCluster");
+// mongoose.connect("mongodb+srv://StyleHavenAdmin:User123Style@freecluster.ymn6e.mongodb.net/stylehaven-jason?retryWrites=true&w=majority&appName=FreeCluster");
+
+// mongoose.connect('mongodb://localhost:5173')
+// .then(() =>{
+//     console.log('Database Connection Verified');
+// })
+// .catch(()=>{
+//     console.log('Failed To Connect');
+// })
+
+// ✅ Database Connection (MongoDB)
+mongoose
+    .connect("mongodb+srv://StyleHavenAdmin:User123Style@freecluster.ymn6e.mongodb.net/stylehaven-jason")
+    .then(() => console.log("✅ MongoDB Connection Verified"))
+    .catch((err) => console.log("❌ MongoDB Connection Failed", err));
+
 
 // API Creation
 app.get("/", (req, res) => {
     res.send('Express App is running');
 });
+
+// Register Endpoint
+app.post('/signup', async (req, res) => {
+    const { name, username, email, password } = req.body;
+
+    // Check if user exists
+    db.query("SELECT * FROM users WHERE email = ?", [email], async (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (result.length > 0) return res.json({ message: "User already exists! You will be redirected to Log In" });
+
+        // Hash Password & Save User
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const sql = "INSERT INTO users (name, username, email, password) VALUES (?, ?, ?, ?)";
+
+        db.query(sql, [name, username, email, hashedPassword], (err, result) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ message: "User registered successfully! You will be redirected to Log In" });
+        });
+    });
+});
+
+// Login Endpoint
+app.post('/login', (req, res) => {
+    const { email, password } = req.body;
+
+
+    db.query('SELECT * FROM users WHERE Email = ? and Password = ?', [email, password], async (err, result) => {
+        if (err) {
+            console.log(err.message);
+            return res.status(400).json({ error: 'Internal Server Error' });
+        }
+        if (result.length === 0) {
+            console.log('Wrong Email or Password')
+            return res.status(500).json({ message: 'Wrong Email or Password' });
+        } if (result.length === 1) {
+            return res.json({ message: `Logged in Successfuly` });
+        }
+    })
+})
 
 //  Image Storage
 const storage = multer.diskStorage({
@@ -31,21 +105,6 @@ const storage = multer.diskStorage({
     }
 });
 
-// Database 
-// const db = mysql.createConnection({
-//     host: 'localhost',
-//     user: 'root',
-//     password: '',
-//     database: 'votingapp'
-// });
-
-// db.connect((err) => {
-//     if (err) {
-//         throw err;
-//     }
-//     console.log('Voting App Connected.....')
-
-// });
 
 //Create Upload Endpoint
 const upload = multer({ storage: storage });
@@ -59,62 +118,6 @@ app.post("/upload", upload.single('product'), (req, res) => {
 });
 
 
-// Register Endpoint
-app.post('/register', (req, res) => {
-
-    const { firstName, lastName, department, email, matricNumber, phoneNumber, password } = req.body;
-
-
-    db.query('SELECT * FROM users WHERE Email = ?', [email], async (err, result) => {
-        if (err) {
-            console.error(" There is an error");
-            return res.status(500).json({ error: 'Internal Server Error' });
-        }
-
-        if (result.length === 0) {
-
-            // Now, you can insert data into the Curriculum table
-            const insertDataQuery = `INSERT INTO users (FirstName, LastName, Department, Email, PhoneNumber, MatricNumber, Password ) VALUES (?, ?, ?, ?, ?, ?, ?);`;
-
-            const values = [firstName, lastName, department, email, phoneNumber, matricNumber, password];
-
-            db.query(insertDataQuery, values, (err) => {
-                if (err) {
-                    console.error(err);
-                    throw new error('Error inserting data');
-                }
-                return res.json({ message: `Account Registered successfully` });
-
-            });
-
-        } else {
-            res.redirect("/login")
-            return res.json({ message: `Acount already exists` });
-        }
-
-    })
-
-
-})
-
-// Login Endpoint
-app.post('/login', (req, res) => {
-    const { email, password } = req.body;
-
-
-    db.query('SELECT * FROM users WHERE Email = ? and Password = ?', [email, password], async (err, result) => {
-        if (err) {
-            console.error(" There is an erro err");
-            return res.status(400).json({ error: 'Internal Server Error' });
-        }
-        if (result.length === 0) {
-            console.log('Wrong Email or Password')
-            return res.status(500).json({ message: 'Wrong Email or Password' });
-        } else {
-            return res.json({ message: `Logged in Successfuly` });
-        }
-    })
-})
 
 // Schema for Creating Products
 const Product = mongoose.model("Product", {

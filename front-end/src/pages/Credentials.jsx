@@ -3,7 +3,7 @@ import SignUp from '../components/SignUp';
 import Login from '../components/Login';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const Credentials = () => {
+const Credentials = ({ setIsLogin }) => {
     const [showLogin, setShowLogin] = useState(false);
 
     const handleLoginClick = () => {
@@ -37,7 +37,7 @@ const Credentials = () => {
                         animate="visible"
                         exit="exit"
                     >
-                        <Login onBack={handleBackToSignUp} />
+                        <Login onBack={handleBackToSignUp} setIsLogin={setIsLogin} />
                     </motion.div>
                 ) : (
                     <motion.div
@@ -47,7 +47,7 @@ const Credentials = () => {
                         animate="visible"
                         exit="exit"
                     >
-                        <SignUp onLogin={handleLoginClick} />
+                        <SignUp onLogin={handleLoginClick} setShowLogin={setShowLogin} />
                     </motion.div>
                 )}
             </AnimatePresence>

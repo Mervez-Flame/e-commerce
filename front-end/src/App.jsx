@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
-import React from 'react';
+import React, { useState } from 'react';
 import Header from './components/Header';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, useNavigate } from 'react-router-dom';
 import Home from './pages/Home';
 import Category from './pages/Category';
 import Product from './pages/Product';
@@ -18,9 +18,18 @@ import AdminUpload from './components/AdminUpload';
 import AdminOverview from './components/AdminOverview';
 
 const App = () => {
+  const [isLogin, setIsLogin] = useState(false);
+  const navigate = useNavigate();
+
+    // 🔹 Logout function
+    const handleLogout = () => {
+      setIsLogin(false); // 🔹 Clear login state
+      navigate('/login'); // 🔹 Redirect to login page
+    };
+
   return (
     <main className="overflow-hidden w-full">
-      <Header />
+      <Header isLogin={isLogin} setIsLogin={setIsLogin} />
       <h1>text</h1>
       <Routes>
         {/* Existing Routes */}
@@ -32,7 +41,7 @@ const App = () => {
           <Route path=":productId" element={<Product />} />
         </Route>
         <Route path="/cart-page" element={<Cart />} />
-        <Route path="/login" element={<Credentials />} />
+        <Route path="/login" element={<Credentials setIsLogin={setIsLogin} />} />
 
         {/* Admin Routes */}
         <Route path="/admin" element={<AdminDashboard />} />

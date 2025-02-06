@@ -2,19 +2,25 @@
 import React, { useContext, useState } from 'react';
 import { Link, NavLink } from "react-router-dom";
 import logo from "../assets/Logo.png";
-// import logout from "../assets/logout.svg";
+import { useNavigate } from 'react-router-dom';
+import logout from "../assets/logout.svg";
 import user from "../assets/user.svg";
 import NavBar from './NavBar';
 import { MdClose, MdMenu } from 'react-icons/md';
 import { FaOpencart } from 'react-icons/fa';
 import { ShopContext } from '../context/ShopContext';
 
-const Header = () => {
-
+const Header = ({ isLogin, setIsLogin }) => {
     const [menuOpened, setmenuOpened] = useState(false);
     const toggleMenu = () => setmenuOpened(!menuOpened);
     const {getTotalCartItems} = useContext(ShopContext);
+    const navigate = useNavigate();
 
+    const handleLogout = () => {
+        localStorage.removeItem('authToken'); // ✅ Clear token if stored
+        setIsLogin(false);
+        navigate('/login');
+    };
 
     return (
         <header className='fixed top-0 left-0 m-auto max_padd_container w-screen bg-white ring-1 ring-slate-900/5 z-10'>
@@ -43,8 +49,10 @@ const Header = () => {
                         
                         <div className='flexBetween sm:gap-x-6 '>
                             <NavLink to={"cart-page"} className={"flex"}><FaOpencart className='p-1 h-8 w-8 ring-slate-900/30 ring-1 rounded-full'/><span className='relative flexCenter w-5 h-5 rounded-full bg-secondary text-white medium-14 -top-2'>{getTotalCartItems()}</span></NavLink>
-                            {/* <NavLink to={'logout'} className={'btn_secondary_rounded flexCenter'} ><img src={logout} alt="Logout Icon" height={19} width={19} />Logout</NavLink> */}
-                            <NavLink to={'login'} className={'btn_secondary_rounded flexCenter max-sm:hidden'} ><img src={user} alt="User Icon" height={19} width={19} />Login</NavLink>
+                            {isLogin?
+                            <NavLink to={'logout'} onClick={handleLogout} className={'btn_secondary_rounded flexCenter max-sm:hidden'} ><img src={logout} alt="Logout Icon" height={19} width={19} />Logout</NavLink>:
+                            <NavLink to={'/login'} className={'btn_secondary_rounded flexCenter max-sm:hidden'} ><img src={user} alt="User Icon" height={19} width={19} />Login</NavLink>
+}
                         </div>
                 </div>
             </div>
