@@ -12,21 +12,26 @@ const { Console } = require("console");
 require("dotenv").config();
 
 const app = express();
+const SECRET_KEY = process.env.SECRET_KEY;
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:5173', // Allow requests from your frontend
+    credentials: true, // Allow cookies & authentication headers
+}));
 app.use(bodyParser.json());
 
 
-// Database 
+// Database Init
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     password: '',
     database: 'style_haven',
-    port: 3306,
+    port:3306,
 });
 
+// Database Connect
 db.connect((err) => {
     if (err) {
         console.error('Database connection error: ', err.message);
@@ -52,16 +57,33 @@ mongoose
     .then(() => console.log("✅ MongoDB Connection Verified"))
     .catch((err) => console.log("❌ MongoDB Connection Failed", err));
 
+//Token Verification
+    const verifyToken = (req, res, next) => {
+        const token = req.cookies.token || req.headers.authorization?.split(' ')[1]; // Check for token in cookies or Authorization header
+    
+        if (!token) {
+            return res.status(403).json({ message: 'Access Denied: No Token Provided' });
+        }
+    
+        try {
+            const decoded = jwt.verify(token, process.env.SECRET_KEY);
+            req.user = decoded; // Attach decoded user info to request
+            next(); // Continue to the next function (route)
+        } catch (error) {
+            return res.status(401).json({ message: 'Invalid Token' });
+        }
+    };
 
 // API Creation
 app.get("/", (req, res) => {
     res.send('Express App is running');
 });
 
+
 // Register Endpoint
 app.post('/signup', async (req, res) => {
     const { name, username, email, password } = req.body;
-
+    
     // Check if user exists
     db.query("SELECT * FROM users WHERE email = ?", [email], async (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -70,7 +92,7 @@ app.post('/signup', async (req, res) => {
         // Hash Password & Save User
         const hashedPassword = await bcrypt.hash(password, 10);
         const sql = "INSERT INTO users (name, username, email, password) VALUES (?, ?, ?, ?)";
-
+        
         db.query(sql, [name, username, email, hashedPassword], (err, result) => {
             if (err) return res.status(500).json({ error: err.message });
             res.json({ message: "User registered successfully! You will be redirected to Log In" });
@@ -82,20 +104,116 @@ app.post('/signup', async (req, res) => {
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
 
-
-    db.query('SELECT * FROM users WHERE Email = ? and Password = ?', [email, password], async (err, result) => {
+    db.query('SELECT * FROM users WHERE Email = ?', [email], async (err, result) => {
         if (err) {
-            console.log(err.message);
-            return res.status(400).json({ error: 'Internal Server Error' });
+            console.error(err.message);
+            return res.status(500).json({ error: 'Internal Server Error' });
         }
         if (result.length === 0) {
-            console.log('Wrong Email or Password')
-            return res.status(500).json({ message: 'Wrong Email or Password' });
-        } if (result.length === 1) {
-            return res.json({ message: `Logged in Successfuly` });
+            return res.status(401).json({ message: 'Invalid Email or Password' });
         }
-    })
-})
+
+        const user = result[0];
+
+        // ✅ Check if user.password exists
+        if (!user.password) {
+            return res.status(500).json({ error: 'User password is missing in the database' });
+        }
+        
+        // ✅ Check if the provided password is not empty
+        if (!password) {
+            return res.status(400).json({ error: 'Password is required' });
+        }
+        
+        const passwordMatch = await bcrypt.compare(password, user.password); // Ensure user.Password matches database column
+
+        if (!passwordMatch) {
+            return res.status(401).json({ message: 'Invalid Email or Password' });
+        }
+
+        // ✅ Generate JWT Token
+        const token = jwt.sign({ id: user.id, email: user.Email }, SECRET_KEY, { expiresIn: '1h' });
+
+        // ✅ Store token in HTTP-only cookie for security
+        res.cookie('token', token, {
+            httpOnly: true, secure: true, sameSite: 'Lax' 
+        }).json({ message: 'Login Successful! You will shortly be redirected to the dashboard', token });
+    });
+});
+
+//Verify Token To Stay Logged In For An Hour
+app.post('/verify-token', (req, res) => {
+    const { token } = req.body;
+
+    if (!token) {
+        return res.status(401).json({ valid: false, message: 'No token provided' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, SECRET_KEY);
+        res.json({ valid: true, user: decoded });
+    } catch (error) {
+        res.status(401).json({ valid: false, message: 'Invalid token' });
+    }
+});
+
+
+// Logged User Access
+app.get('/profile', verifyToken, (req, res) => {
+    const userId = req.user.id;
+
+    db.query("SELECT id, name, username, email FROM users WHERE id = ?", [userId], (err, result) => {
+        if (err) {
+            console.error("Error fetching user:", err);
+            return res.status(500).json({ error: "Internal Server Error" });
+        }
+        if (result.length === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.json(result[0]); // Return user data without password
+    });
+});
+
+// Logged In Password Change
+app.post('/change-password', verifyToken, async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.id;
+
+    if (newPassword.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters long" });
+    }
+
+    // Fetch user from database
+    db.query("SELECT password FROM users WHERE id = ?", [userId], async (err, result) => {
+        if (err) {
+            console.error("Error fetching user:", err);
+            return res.status(500).json({ error: "Internal Server Error" });
+        }
+        if (result.length === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const user = result[0];
+        const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+
+        if (!passwordMatch) {
+            return res.status(401).json({ message: "Current password is incorrect" });
+        }
+
+        // Hash the new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        db.query("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, userId], (err) => {
+            if (err) {
+                console.error("Error updating password:", err);
+                return res.status(500).json({ error: "Internal Server Error" });
+            }
+
+            res.json({ message: "Password updated successfully!" });
+        });
+    });
+});
+
 
 //  Image Storage
 const storage = multer.diskStorage({

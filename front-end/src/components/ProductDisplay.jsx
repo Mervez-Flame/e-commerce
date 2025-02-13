@@ -7,6 +7,7 @@ import product_rt_4 from '../assets/product_rt_4.png';
 import { MdStar } from 'react-icons/md';
 import { MdStarHalf } from "react-icons/md";
 import { ShopContext } from './../context/ShopContext';
+import { NavLink } from 'react-router-dom';
 
 
 
@@ -69,7 +70,7 @@ const ProductDisplay = (props) => {
                             </div>
                             <div className='flex flex-col  mb-4 gap-y-3'>
                                 <button onClick={() => {addToCart(product.id)}} className='btn_dark_outline uppercase !rounded-none regular-14 tracking-widest bold-16'>Add to cart</button>
-                                <button className='btn_dark_rounded uppercase !rounded-none regular-14 tracking-widest bold-16'>Buy it now</button>
+                                <NavLink to={'/cart-page'} className='btn_dark_rounded uppercase !rounded-none regular-14 tracking-widest bold-16 text-center'>Buy it now</NavLink>
                             </div>
                             <p><span className='medium-16 text-tertiary'>Category :</span> <span className='capitalize'>{product.category}</span> | Jacket | Winter</p>
                             <p><span className='medium-16 text-tertiary'>Tags :</span> Modern | Latest</p>

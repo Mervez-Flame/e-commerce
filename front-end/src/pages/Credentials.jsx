@@ -3,7 +3,7 @@ import SignUp from '../components/SignUp';
 import Login from '../components/Login';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const Credentials = ({ setIsLogin }) => {
+const Credentials = ({ setIsLogin, setIsLoading }) => {
     const [showLogin, setShowLogin] = useState(false);
 
     const handleLoginClick = () => {
@@ -27,7 +27,7 @@ const Credentials = ({ setIsLogin }) => {
     };
 
     return (
-        <section className="flex justify-center items-center h-screen mt-16 w-screen bg-[#fc823f]">
+        <section className="flex justify-center items-center h-screen w-screen bg-[#222020]">
             <AnimatePresence mode="popLayout"> 
                 {showLogin ? (
                     <motion.div

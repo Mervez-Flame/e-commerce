@@ -4,9 +4,10 @@ import { NavLink } from "react-router-dom";
 import { MdCategory, MdContacts, MdHomeFilled, MdShop2 } from "react-icons/md";
 // import logout from "../assets/logout.svg";
 import user from "../assets/user.svg";
+import { FaUser } from 'react-icons/fa';
 
 // eslint-disable-next-line react/prop-types
-const NavBar = ({containerStyles}) => {
+const NavBar = ({containerStyles, isLogin, setIsLogin}) => {
     return (
         <nav className={`${containerStyles}`}>
             <NavLink to={'/'} className={({isActive}) => isActive ? "active_link" : ""}>
@@ -29,7 +30,13 @@ const NavBar = ({containerStyles}) => {
                     <MdContacts/>Kid&apos;s
                 </div>
             </NavLink>
-            {/* <NavLink to={'logout'} className={'btn_secondary_rounded flexCenter'} ><img src={logout} alt="Logout Icon" height={19} width={19} />Logout</NavLink> */}
+            {isLogin && (
+                <NavLink to={'/profile'} className={({ isActive }) => isActive ? "active_link" : ""}>
+                    <div className='flexCenter gap-x-1'>
+                        <FaUser />Profile
+                    </div>
+                </NavLink>
+            )}
             <NavLink to={'login'} className={'btn_secondary_rounded flexCenter max-sm:flex md:hidden'} ><img src={user} alt="User Icon" height={19} width={19} />Login</NavLink>
         </nav>
     )

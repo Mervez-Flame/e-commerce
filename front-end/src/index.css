@@ -62,10 +62,10 @@
 
 @layer utilities {
     .btn_personal_black {
-        @apply relative text-[20px] border border-green-90 bg-black px-7 py-3 max-sm:py-0 max-sm:px-9 text-white overflow-hidden rounded-full transition-all duration-700;
+        @apply relative text-[20px] bg-black px-7 py-3 max-sm:py-0 max-sm:px-9 text-white overflow-hidden rounded-full transition-all duration-700;
     }
     .btn_personal_orange {
-        @apply relative text-[20px] border border-green-90 bg-[#fc823f] px-7 py-3 max-sm:py-0 max-sm:px-9 text-black overflow-hidden rounded-full transition-all duration-700;
+        @apply relative text-[20px] bg-[#fc823f] px-7 py-3 max-sm:py-0 max-sm:px-9 text-black overflow-hidden rounded-full transition-all duration-700;
     }
 
     .btn_personal_span {
