@@ -19,6 +19,18 @@ const SuccessPopup = ({ message }) => {
     );
 };
 
+const ErrorPopup = ({ message, onClose }) => {
+    if (!message) return null;
+    return (
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-md bg-transparent z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg relative w-80 text-center">
+                <p className="text-red-500 font-bold text-lg">{message}</p>
+                <button onClick={onClose} className="text-black mt-2">Close</button>
+            </div>
+        </div>
+    );
+};
+
 const SignUp = ({ onLogin, setShowLogin }) => {
     // const [see, setSee] = useState(true);
     const [name, setName] = useState('');
@@ -60,7 +72,7 @@ const SignUp = ({ onLogin, setShowLogin }) => {
     return (
         <section className="flex justify-center items-center w-screen h-screen bg-[#222020]">
             {success && <SuccessPopup message={success} onClose={() => setSuccess('')} />}
-            {success && <SuccessPopup message={error} onClose={() => setSuccess('')} />}
+            {success && <ErrorPopup message={error} onClose={() => setError('')} />}
             <form className='w-full px-8 h-full font-bold text-[#000000]  justify-center items-center flex gap-2  max-sm:h-[100%] ' onSubmit={handleSubmit}>
                 <div className="w-full flex flex-col gap-4 px-12 py-16 max-sm:pb-10 max-sm:pt-5 rounded-xl shadow-[#fc823f] shadow-md text-[#ffffff]">
                     {loading && <h4 className='bold text-[20px] font-[20px]'>Loading...</h4>}
