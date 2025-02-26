@@ -8,11 +8,11 @@ const LoadingSpinner = () => {
     };
 
     return (
-        <div className="fixed inset-0 flex justify-center items-center bg-white bg-opacity-80 z-[1000]">
+        <div className="fixed inset-0 flex justify-center items-center bg-white z-[1000]">
             {[...Array(6)].map((_, index) => (
                 <motion.div
                     key={index}
-                    className="w-4 h-16 bg-[#fc823f] rounded-lg"
+                    className="w-4 h-16 bg-[#ff7830] rounded-lg"
                     variants={rippleVariants}
                     initial="hidden"
                     animate="visible"

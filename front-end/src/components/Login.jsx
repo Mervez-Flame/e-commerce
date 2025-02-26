@@ -62,7 +62,7 @@ const Login = ({ onBack, setIsLogin }) => {
                 const interval = setInterval(checkToken, 1000 * 60 * 55); // Check every 55 minutes
                 return () => clearInterval(interval);
             }
-        });
+        }, []);
         
 
     const handleLogin = async (e) => {
@@ -103,7 +103,7 @@ const Login = ({ onBack, setIsLogin }) => {
             {success && <SuccessPopup message={success} />}
             {error && <ErrorPopup message={error} onClose={() => setError('')} />}
 
-            <div className='w-full h-[80%] hidden md:flex justify-center'>
+            <div className='w-full h-[80%] hidden lg:flex justify-center'>
                 <img src={login} alt="" />
             </div>
 
@@ -116,7 +116,7 @@ const Login = ({ onBack, setIsLogin }) => {
                     <div className="w-full items-center lg:text-[25px]">
                         <label>E-mail:</label>
                         <input 
-                            className="w-full px-4 rounded-full text-black" 
+                            className="w-full px-4 rounded-full text-black lg:text-[20px]" 
                             type="email" 
                             required 
                             name="email" 
@@ -139,7 +139,7 @@ const Login = ({ onBack, setIsLogin }) => {
                             type={see ? "password" : "text"} 
                             value={password} 
                             onChange={(event) => setPassword(event.target.value)} 
-                            className='w-full px-4 rounded-full' 
+                            className='w-full px-4 rounded-full lg:text-[20px]' 
                             required 
                             name="password" 
                             placeholder='Enter your Password' 

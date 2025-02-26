@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 // import { useContext } from "react";
 // import { CredentialsContext } from "../pages/Credentials";
 import { useState } from 'react';
@@ -21,7 +22,7 @@ const SuccessPopup = ({ message }) => {
 const SignUp = ({ onLogin, setShowLogin }) => {
     // const [see, setSee] = useState(true);
     const [name, setName] = useState('');
-    const [username, setuserName] = useState('');
+    const [username, setUserName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -35,23 +36,19 @@ const SignUp = ({ onLogin, setShowLogin }) => {
         setSuccess('');
 
         try {
-            const res = await axios.post("http://localhost:4000/signup", {
-                name: name,
-                username: username, // Match this with the database field
-                email: email,
-                password: password,
-            });
-
+            const res = await axios.post(
+                "http://localhost:4000/signup",
+                { name, username, email, password },
+                { headers: { "Content-Type": "application/json" } }
+            );
             setSuccess(res.data.message);
             setName('');
-            setuserName('');
+            setUserName('');
             setEmail('');
             setPassword('');
-            setTimeout(() => {
-                setShowLogin(true);
-            }, 3000);
+            setTimeout(() => setShowLogin(true), 3000);
         } catch (error) {
-            setError(error.response);
+            setError(error.response?.data?.message || "Something went wrong. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -74,7 +71,7 @@ const SignUp = ({ onLogin, setShowLogin }) => {
                     </div>
                     <div className="w-full items-center lg:text-[20px]">
                         <label>Username:</label>
-                        <input className="w-full px-4 rounded-full text-black" type="text" required value={username} onChange={(event) => setuserName(event.target.value)} name="username" placeholder='Enter your Username' />
+                        <input className="w-full px-4 rounded-full text-black" type="text" required value={username} onChange={(event) => setUserName(event.target.value)} name="username" placeholder='Enter your Username' />
                     </div>
                     <div className="w-full items-center lg:text-[20px]">
                         <label>E-mail:</label>
@@ -102,7 +99,7 @@ const SignUp = ({ onLogin, setShowLogin }) => {
 
                 </div>
             </form>
-            <div className='w-full h-[80%] hidden md:flex justify-center'>
+            <div className='w-full h-[80%] hidden lg:flex justify-center'>
                 <img src={login} alt="" />
             </div>
 
