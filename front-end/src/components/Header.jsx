@@ -20,7 +20,6 @@ const Header = ({ isLogin, setIsLogin, setIsLoading }) => {
     const handleLogout = () => {
         localStorage.removeItem('token'); // ✅ Clear token if stored
         setIsLogin(false);
-        navigate('/login');
     };
 
     return (

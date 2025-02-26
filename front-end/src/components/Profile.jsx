@@ -10,7 +10,7 @@ const Profile = () => {
 
     useEffect(() => {
         axios
-            .get(`htt/profile`, {
+            .get(`https://e-commerce-1-ttx6.onrender.com/profile`, {
                 headers: { Authorization: localStorage.getItem("token") },
             })
             .then((res) => setUser(res.data))
@@ -23,7 +23,7 @@ const Profile = () => {
         formData.append("profilePic", file);
 
         try {
-            const res = await axios.put(`${API_URL}/profile/picture`, formData, {
+            const res = await axios.put(`https://e-commerce-1-ttx6.onrender.com/profile/picture`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                     Authorization: localStorage.getItem("token"),
@@ -38,7 +38,7 @@ const Profile = () => {
     const handlePasswordChange = async () => {
         try {
             await axios.put(
-                `${API_URL}/profile/password`,
+                `https://e-commerce-1-ttx6.onrender.com/profile/password`,
                 { oldPassword, newPassword },
                 { headers: { Authorization: localStorage.getItem("token") } }
             );

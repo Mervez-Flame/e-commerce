@@ -46,7 +46,7 @@ const Login = ({ onBack, setIsLogin }) => {
             if (token) {
                 const checkToken = async () => {
                     try {
-                        const res = await axios.post('http://localhost:4000/verify-token', { token });
+                        const res = await axios.post('https://e-commerce-1-ttx6.onrender.com/verify-token', { token });
                         if (!res.data.valid) {
                             localStorage.removeItem('token');
                             setIsLogin(false);
@@ -78,7 +78,7 @@ const Login = ({ onBack, setIsLogin }) => {
         }
     
         try {
-            const res = await axios.post('http://localhost:4000/login', { email: email, password: password }, { withCredentials: true });
+            const res = await axios.post('https://e-commerce-1-ttx6.onrender.com/login', { email: email, password: password }, { withCredentials: true });
     
             setSuccess(res.data.message);
             setIsLogin(true);
