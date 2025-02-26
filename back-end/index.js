@@ -1,4 +1,4 @@
-const port = 4000;
+const port = process.env.PORT || 4000;
 const express = require("express");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
@@ -214,21 +214,13 @@ app.post('/verify-token', (req, res) => {
 });
 
 
-// Logged User Access
-app.get('/profile', verifyToken, (req, res) => {
-    const userId = req.user.id;
-
-    db.query("SELECT id, name, username, email FROM users WHERE id = ?", [userId], (err, result) => {
-        if (err) {
-            console.error("Error fetching user:", err);
-            return res.status(500).json({ error: "Internal Server Error" });
-        }
-        if (result.length === 0) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        res.json(result[0]); // Return user data without password
-    });
+app.get("/api/profile", verifyToken, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select("-password");
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ message: "Server error" });
+    }
 });
 
 // // Logged User Access
